@@ -1,0 +1,77 @@
+*** Installation started 2014/12/23 09:17 ***
+Source: D:\Python27\!INSTALL\psutil-2.1.3.win32-py2.7.exe
+999 Root Key: HKEY_LOCAL_MACHINE
+020 Reg DB Key: [Software\Microsoft\Windows\CurrentVersion\Uninstall]psutil-py2.7
+040 Reg DB Value: [Software\Microsoft\Windows\CurrentVersion\Uninstall\psutil-py2.7]DisplayName=Python 2.7 psutil-2.1.3
+040 Reg DB Value: [Software\Microsoft\Windows\CurrentVersion\Uninstall\psutil-py2.7]UninstallString="D:\Python27\Removepsutil.exe" -u "D:\Python27\psutil-wininst.log"
+200 File Copy: D:\Python27\Lib\site-packages\_psutil_windows.pyd
+100 Made Dir: D:\Python27\Lib\site-packages\psutil
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_common.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_compat.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psbsd.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pslinux.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psosx.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psposix.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pssunos.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pswindows.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\__init__.py
+100 Made Dir: D:\Python27\Lib\site-packages\psutil-2.1.3-py2.7.egg-info
+200 File Copy: D:\Python27\Lib\site-packages\psutil-2.1.3-py2.7.egg-info\dependency_links.txt
+200 File Copy: D:\Python27\Lib\site-packages\psutil-2.1.3-py2.7.egg-info\PKG-INFO
+200 File Copy: D:\Python27\Lib\site-packages\psutil-2.1.3-py2.7.egg-info\SOURCES.txt
+200 File Copy: D:\Python27\Lib\site-packages\psutil-2.1.3-py2.7.egg-info\top_level.txt
+200 File Copy: D:\Python27\Lib\site-packages\psutil\__init__.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pswindows.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pssunos.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psposix.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psosx.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pslinux.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psbsd.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_compat.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_common.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\__init__.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pswindows.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pssunos.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psposix.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psosx.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pslinux.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psbsd.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_compat.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_common.pyo
+*** Installation started 2014/12/23 09:27 ***
+Source: D:\Python27\!INSTALL\psutil-2.1.3.win32-py2.7.exe
+999 Root Key: HKEY_LOCAL_MACHINE
+040 Reg DB Value: [Software\Microsoft\Windows\CurrentVersion\Uninstall\psutil-py2.7]DisplayName=Python 2.7 psutil-2.1.3
+040 Reg DB Value: [Software\Microsoft\Windows\CurrentVersion\Uninstall\psutil-py2.7]UninstallString="D:\Python27\Removepsutil.exe" -u "D:\Python27\psutil-wininst.log"
+200 File Copy: D:\Python27\Lib\site-packages\_psutil_windows.pyd
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_common.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_compat.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psbsd.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pslinux.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psosx.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psposix.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pssunos.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pswindows.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil\__init__.py
+200 File Copy: D:\Python27\Lib\site-packages\psutil-2.1.3-py2.7.egg-info\dependency_links.txt
+200 File Copy: D:\Python27\Lib\site-packages\psutil-2.1.3-py2.7.egg-info\PKG-INFO
+200 File Copy: D:\Python27\Lib\site-packages\psutil-2.1.3-py2.7.egg-info\SOURCES.txt
+200 File Copy: D:\Python27\Lib\site-packages\psutil-2.1.3-py2.7.egg-info\top_level.txt
+200 File Copy: D:\Python27\Lib\site-packages\psutil\__init__.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pswindows.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pssunos.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psposix.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psosx.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pslinux.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psbsd.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_compat.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_common.pyc
+200 File Copy: D:\Python27\Lib\site-packages\psutil\__init__.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pswindows.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pssunos.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psposix.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psosx.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_pslinux.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_psbsd.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_compat.pyo
+200 File Copy: D:\Python27\Lib\site-packages\psutil\_common.pyo
