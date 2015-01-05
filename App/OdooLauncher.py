@@ -15,11 +15,11 @@ sys.path.insert(0, os.path.join(scriptpath, 'lib'))
 
 if sys.maxsize == 2147483647:
     sys.path.insert(0, os.path.join(scriptpath, 'libX86'))
-    sys.path.insert(0, scriptpath + '/libX86/libraries.lib')
+    sys.path.insert(0, scriptpath + '/libX86/libraries.zip')
     print ("Running x86")
 else:
     sys.path.insert(0, os.path.join(scriptpath, 'libX64'))
-    sys.path.insert(0, scriptpath + '/libX64/libraries.lib')
+    sys.path.insert(0, scriptpath + '/libX64/libraries.zip')
     print ("Running x64")
 
 import re, time, webbrowser
@@ -120,7 +120,7 @@ for proc in procs:
     except:
         pass
 
-if count >= 1:
+if count > 1:
     webbrowser.open(mainSettings['odoo']['startpage'])
     os._exit(1)
 
@@ -231,7 +231,7 @@ class MainWindow(QMainWindow):
         trayoption_exit_entry.triggered.connect(lambda: self.trayOptionExit())
         traymenu.addAction(trayoption_exit_entry)
         trayoption_exit_entry.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/cancel.png'))
-        
+
         self.tray.showMessage('Odoo is Loading - Please wait','\nLeft click to open CommandWindow\nRight click to open Traymenu')
 
         self.showCommandLineWindow()
@@ -324,7 +324,7 @@ class CommandLineWindow(QMainWindow):
             stylesheet = stylesheetFile.read()
             self.setStyleSheet(stylesheet)
             stylesheetFile.close()
-        
+
         if mainSettings['autostart']['autostartPostgre'] == True:
             self.processStartPostgre()
         if mainSettings['autostart']['autostartOdoo'] == True:
@@ -334,9 +334,9 @@ class CommandLineWindow(QMainWindow):
         #Set Values
         comboBox_config_other_themeIndex = self.comboBox_config_other_theme.findText(mainSettings['other']['theme'], QtCore.Qt.MatchFixedString)
         if comboBox_config_other_themeIndex >= 0:
-            self.comboBox_config_other_theme.setCurrentIndex(comboBox_config_other_themeIndex)        
-        
-        
+            self.comboBox_config_other_theme.setCurrentIndex(comboBox_config_other_themeIndex)
+
+
         if mainSettings['other']['minimizeToTray']:
             self.checkBox_config_other_minimize_to_tray.setCheckState(QtCore.Qt.Checked)
         if mainSettings['other']['autostartBrowser']:
