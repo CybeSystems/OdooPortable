@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="odoo">
+    <file>cancel.png</file>
+    <file>cog.png</file>
+    <file>icon.ico</file>
+    <file>icon.png</file>
+    <file>start_server.png</file>
+    <file>stop_server.png</file>
+  </qresource>
+</RCC>
