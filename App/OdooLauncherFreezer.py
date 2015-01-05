@@ -218,8 +218,8 @@ os.remove('build/' + x86x64BuildPath + '/lib' + x86x64 + '/Qt5Sql.dll')
 os.remove('build/' + x86x64BuildPath + '/lib' + x86x64 + '/Qt5WebKit.dll')
 os.remove('build/' + x86x64BuildPath + '/lib' + x86x64 + '/SSLEAY32.dll')
 
-#Workaround for PyQt error platform files not found
-shutil.copyfile('build/' + x86x64BuildPath + '/lib' + x86x64 + '/libEGL.dll', 'build/' + x86x64BuildPath + '/libEGL.dll')
+#Workaround for PyQt error platform files not found -> No longer needed in PyQt 5.4
+#shutil.copyfile('build/' + x86x64BuildPath + '/lib' + x86x64 + '/libEGL.dll', 'build/' + x86x64BuildPath + '/libEGL.dll')
 
 shutil.copytree('build/' + x86x64BuildPath + '/platforms', 'build/' + x86x64BuildPath + '/lib' + x86x64 + '/plugins/platforms')
 shutil.copytree('build/' + x86x64BuildPath + '/PyQt5.uic.widget-plugins', 'build/' + x86x64BuildPath + '/lib' + x86x64 + '/plugins/PyQt5.uic.widget-plugins')
