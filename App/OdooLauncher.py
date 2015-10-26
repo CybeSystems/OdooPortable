@@ -106,7 +106,7 @@ def writeMainSettings():
 #########################################################################################################
 count = 0
 
-procs = psutil.get_process_list()
+procs = list(psutil.process_iter())
 for proc in procs:
     try:
         if proc.name() == 'OdooLauncher-X86.exe':
@@ -440,7 +440,7 @@ class CommandLineWindow(QMainWindow):
 
         #To Start diffent Python Verison (in tis case 2.7) PYTHON_PATH needs to set to this installation
         os.environ["PYTHONPATH"] = scriptpathWinSep + "\\Runtime\\Python27"
-        os.environ["PATH"] = scriptpathWinSep + "\\Runtime\\wkhtmltopdf\\bin"
+        os.environ["PATH"] = scriptpathWinSep + "\\Runtime\\wkhtmltopdf\\bin" + ";" + scriptpathWinSep + "\\Runtime\\nodejs"
 
         self.processOdoo = QtCore.QProcess( self)
         self.processOdoo.setWorkingDirectory(scriptpathWinSep + "\\Runtime\\Python27")
