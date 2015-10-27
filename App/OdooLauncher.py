@@ -30,8 +30,11 @@ import re, time, webbrowser
 import dict4ini
 import urllib.request
 import psutil
-from PyQt5 import QtCore, QtGui, uic
-from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog, QVBoxLayout, QTextEdit, QMainWindow, QSystemTrayIcon, QMenu, QAction, QDesktopWidget
+import shutil
+import zipfile
+
+from PyQt5 import QtCore, QtGui, uic, QtWidgets, QtNetwork
+from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog, QVBoxLayout, QTextEdit, QMainWindow, QSystemTrayIcon, QMenu, QAction, QDesktopWidget, QProgressBar
 QtCore.QString = str
 
 
@@ -64,6 +67,9 @@ iniMainSettings = dict4ini.DictIni(mainConfigFile)
 runtimeSettings = {}
 
 def defaultMainSettingsIni():
+    mainSettings['github'] = {}
+    mainSettings['github']['downloadPath'] = "https://codeload.github.com/odoo/odoo/zip/9.0"    
+    
     mainSettings['other'] = {}
     mainSettings['other']['theme'] = "Default"
     mainSettings['other']['minimizeToTray'] = True
@@ -100,6 +106,256 @@ replaceSetting()
 
 def writeMainSettings():
     mainSettings.save()
+    
+
+OdooInstallationFound = True
+if not os.path.isdir(scriptpath + '\\Runtime\\Odoo'):
+    OdooInstallationFound = False
+    print("Odoo  not found -> Downloading on GUI start")    
+    
+
+
+
+#####################################################################################################
+# Download Dialog
+#####################################################################################################
+class HttpWindow(QtWidgets.QDialog):
+
+    def center_widget(self, w):
+        desktop = QtWidgets.QApplication.desktop()
+        screenRect = desktop.screenGeometry(desktop.primaryScreen())
+        screen_w = screenRect.width()
+        screen_h = screenRect.height()
+        widget_w = w.width()
+        widget_h = w.height()
+        x = (screen_w - widget_w) / 2
+        y = (screen_h - widget_h) /2
+        w.move(x, y)
+
+    def __init__(self, url=None, showURL = False, parent=None):
+        super(HttpWindow, self).__init__(parent)
+
+        self.url = QtCore.QUrl()
+        self.qnam = QtNetwork.QNetworkAccessManager()
+        self.reply = None
+        self.outFile = None
+        self.httpGetId = 0
+        self.httpRequestAborted = False
+
+        self.urlLineEdit = QtWidgets.QLineEdit(url)
+        if showURL == True:
+
+            
+            urlLabel = QtWidgets.QLabel("&URL:")
+            urlLabel.setBuddy(self.urlLineEdit)
+            self.statusLabel = QtWidgets.QLabel("Please enter the URL of a file you want to download.")
+            self.statusLabel.setWordWrap(True)
+
+            self.downloadButton = QtWidgets.QPushButton("Download")
+            self.downloadButton.setDefault(True)
+            self.quitButton = QtWidgets.QPushButton("Quit")
+            self.quitButton.setAutoDefault(False)
+
+            buttonBox = QtWidgets.QDialogButtonBox()
+            buttonBox.addButton(self.downloadButton, QtWidgets.QDialogButtonBox.ActionRole)
+            buttonBox.addButton(self.quitButton, QtWidgets.QDialogButtonBox.RejectRole)
+
+            self.urlLineEdit.textChanged.connect(self.enableDownloadButton)
+            self.qnam.authenticationRequired.connect(
+                    self.slotAuthenticationRequired)
+            self.qnam.sslErrors.connect(self.sslErrors)
+            self.downloadButton.clicked.connect(self.downloadFile)
+            self.quitButton.clicked.connect(self.close)
+
+            topLayout = QtWidgets.QHBoxLayout()
+
+            
+            topLayout.addWidget(urlLabel)
+            topLayout.addWidget(self.urlLineEdit)
+
+            mainLayout = QtWidgets.QVBoxLayout()
+            mainLayout.addLayout(topLayout)
+            mainLayout.addWidget(self.statusLabel)
+            mainLayout.addWidget(buttonBox)
+            self.setLayout(mainLayout)
+
+            self.setWindowTitle("HTTP")
+            self.urlLineEdit.setFocus()
+        else:
+            self.progressbar = QtWidgets.QProgressBar()
+            self.progressbar.setMinimum(1)
+            self.progressbar.setMaximum(100)            
+
+            self.urlLabel = QtWidgets.QLabel("&URL:")
+            self.urlLabel.setBuddy(self.urlLineEdit)
+            self.statusLabel = QtWidgets.QLabel("Odoo not found - Please click on download")
+            self.statusLabel.setWordWrap(True)
+
+            self.downloadButton = QtWidgets.QPushButton("Download")
+            self.downloadButton.setDefault(True)
+            self.quitButton = QtWidgets.QPushButton("Quit")
+            self.quitButton.setAutoDefault(False)
+
+            buttonBox = QtWidgets.QDialogButtonBox()
+            buttonBox.addButton(self.downloadButton, QtWidgets.QDialogButtonBox.ActionRole)
+            buttonBox.addButton(self.quitButton, QtWidgets.QDialogButtonBox.RejectRole)
+
+            self.urlLineEdit.textChanged.connect(self.enableDownloadButton)
+            self.qnam.authenticationRequired.connect(
+                    self.slotAuthenticationRequired)
+            self.qnam.sslErrors.connect(self.sslErrors)
+            self.downloadButton.clicked.connect(self.downloadFile)
+            self.quitButton.clicked.connect(self.close)
+
+            topLayout = QtWidgets.QHBoxLayout()
+            
+            topLayout.addWidget(self.urlLabel)
+            topLayout.addWidget(self.urlLineEdit)
+
+            mainLayout = QtWidgets.QVBoxLayout()
+            mainLayout.addLayout(topLayout)
+            mainLayout.addWidget(self.progressbar)
+            mainLayout.addWidget(self.statusLabel)
+            mainLayout.addWidget(buttonBox)
+            self.setLayout(mainLayout)
+
+            self.setWindowTitle("Download Odoo")
+            self.setGeometry(0,0,500,100)
+            self.center_widget(self)
+            self.urlLineEdit.setFocus()
+            self.progressbar.hide()
+
+    def startRequest(self, url):
+        self.urlLineEdit.hide()
+        self.urlLabel.hide()
+        self.progressbar.show()
+        self.reply = self.qnam.get(QtNetwork.QNetworkRequest(url))
+        self.reply.finished.connect(self.httpFinished)
+        self.reply.readyRead.connect(self.httpReadyRead)
+        self.reply.downloadProgress.connect(self.updateDataReadProgress)
+
+    def downloadFile(self):
+        self.url = QtCore.QUrl(self.urlLineEdit.text())
+        fileInfo = QtCore.QFileInfo(self.url.path())
+        fileName = fileInfo.fileName()
+
+        if not fileName:
+            fileName = 'index.html'
+        
+        #Use a fixed name for Odoo download from github
+        fileName = "Temp\\GitHub-Odoo.zip"
+
+        if QtCore.QFile.exists(fileName):
+            ret = QtWidgets.QMessageBox.question(self, "HTTP","There already exists a file called %s in the current directory. Overwrite?" % fileName, QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
+
+            if ret == QtWidgets.QMessageBox.No:
+                return
+
+            QtCore.QFile.remove(fileName)
+
+        self.outFile = QtCore.QFile(fileName)
+        if not self.outFile.open(QtCore.QIODevice.WriteOnly):
+            QtWidgets.QMessageBox.information(self, "HTTP",
+                    "Unable to save the file %s: %s." % (fileName, self.outFile.errorString()))
+            self.outFile = None
+            return
+
+        self.downloadButton.setEnabled(False)
+
+        self.httpRequestAborted = False
+        self.startRequest(self.url)
+
+    def cancelDownload(self):
+        self.statusLabel.setText("Download canceled.")
+        self.httpRequestAborted = True
+        self.reply.abort()
+        self.downloadButton.setEnabled(True)
+
+    def httpFinished(self):
+        if self.httpRequestAborted:
+            if self.outFile is not None:
+                self.outFile.close()
+                self.outFile.remove()
+                self.outFile = None
+
+            self.reply.deleteLater()
+            self.reply = None
+            return
+
+        self.outFile.flush()
+        self.outFile.close()
+
+        redirectionTarget = self.reply.attribute(QtNetwork.QNetworkRequest.RedirectionTargetAttribute)
+
+        if self.reply.error():
+            self.outFile.remove()
+            QtWidgets.QMessageBox.information(self, "HTTP", "Download failed: %s." % self.reply.errorString())
+            self.downloadButton.setEnabled(True)
+        elif redirectionTarget is not None:
+            newUrl = self.url.resolved(redirectionTarget.toUrl())
+
+            ret = QtWidgets.QMessageBox.question(self, "HTTP",
+                    "Redirect to %s?" % newUrl.toString(),
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+
+            if ret == QtWidgets.QMessageBox.Yes:
+                self.url = newUrl
+                self.reply.deleteLater()
+                self.reply = None
+                self.outFile.open(QtCore.QIODevice.WriteOnly)
+                self.outFile.resize(0)
+                self.startRequest(self.url)
+                return
+        else:
+            fileName = QtCore.QFileInfo(QtCore.QUrl(self.urlLineEdit.text()).path()).fileName()
+            self.statusLabel.setText("Downloaded %s to %s." % (fileName, QtCore.QDir.currentPath()))
+
+            self.downloadButton.setEnabled(True)
+            self.quitButton.click()
+
+        self.reply.deleteLater()
+        self.reply = None
+        self.outFile = None
+
+    def httpReadyRead(self):
+        if self.outFile is not None:
+            self.outFile.write(self.reply.readAll())
+
+    def updateDataReadProgress(self, bytesRead, totalBytes):
+        if self.httpRequestAborted:
+            return
+        self.progressbar.setMaximum(totalBytes)
+        self.progressbar.setValue(bytesRead)
+
+    def enableDownloadButton(self):
+        self.downloadButton.setEnabled(self.urlLineEdit.text() != '')
+
+    def slotAuthenticationRequired(self, authenticator):
+        import os
+        from PyQt5 import uic
+
+        ui = os.path.join(os.path.dirname(__file__), 'authenticationdialog.ui')
+        dlg = uic.loadUi(ui)
+        dlg.adjustSize()
+        dlg.siteDescription.setText("%s at %s" % (authenticator.realm(), self.url.host()))
+
+        dlg.userEdit.setText(self.url.userName())
+        dlg.passwordEdit.setText(self.url.password())
+
+        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+            authenticator.setUser(dlg.userEdit.text())
+            authenticator.setPassword(dlg.passwordEdit.text())
+
+    def sslErrors(self, reply, errors):
+        errorString = ", ".join([str(error.errorString()) for error in errors])
+
+        ret = QtWidgets.QMessageBox.warning(self, "HTTP Example",
+                "One or more SSL errors has occurred: %s" % errorString,
+                QtWidgets.QMessageBox.Ignore | QtWidgets.QMessageBox.Abort)
+
+        if ret == QtWidgets.QMessageBox.Ignore:
+            self.reply.ignoreSslErrors()
+    
 
 #########################################################################################################
 # Check if program is already running
@@ -128,6 +384,94 @@ def loadUi(uifile, parent=None):
     from PyQt5 import uic
     return uic.loadUi(uifile, parent)
 
+#####################################################################################################
+# Extract Dialog
+#####################################################################################################    
+class ZipWindow(QtWidgets.QDialog):
+
+    trigger = QtCore.pyqtSignal()
+    
+    def center_widget(self, w):
+        desktop = QtWidgets.QApplication.desktop()
+        screenRect = desktop.screenGeometry(desktop.primaryScreen())
+        screen_w = screenRect.width()
+        screen_h = screenRect.height()
+        widget_w = w.width()
+        widget_h = w.height()
+        x = (screen_w - widget_w) / 2
+        y = (screen_h - widget_h) /2
+        w.move(x, y)
+
+    def __init__(self, file=None, destination_path = None, parent=None):
+        super(ZipWindow, self).__init__(parent)
+
+        self.file = file
+        self.destination_path = destination_path
+
+        self.statusLabel = QtWidgets.QLabel("")
+        self.statusLabel.setWordWrap(False)
+
+        self.downloadButton = QtWidgets.QPushButton("Download")
+        self.downloadButton.setDefault(True)
+        
+        self.quitButton = QtWidgets.QPushButton("Quit")
+        self.quitButton.setAutoDefault(False)
+
+        buttonBox = QtWidgets.QDialogButtonBox()
+        buttonBox.addButton(self.downloadButton, QtWidgets.QDialogButtonBox.ActionRole)
+        buttonBox.addButton(self.quitButton, QtWidgets.QDialogButtonBox.RejectRole)
+
+        self.downloadButton.clicked.connect(self.downloadFile)
+        self.quitButton.clicked.connect(self.optionExit)
+
+        topLayout = QtWidgets.QHBoxLayout()
+
+        mainLayout = QtWidgets.QVBoxLayout()
+        mainLayout.addLayout(topLayout)
+        mainLayout.addWidget(self.statusLabel)
+        mainLayout.addWidget(buttonBox)
+        self.setLayout(mainLayout)
+        
+        self.setWindowTitle("Extracting...")
+        
+        self.show()
+        self.downloadButton.hide()
+        self.downloadButton.click()
+        
+        
+    def downloadFile(self):
+        odooZipFile = zipfile.ZipFile(self.file)
+        nameList = len(odooZipFile.namelist())
+
+        QApplication.processEvents()
+        with odooZipFile as myzipfile:
+            members = myzipfile.infolist()
+            for i, member in enumerate(members):
+                myzipfile.extract(member, self.destination_path)
+                self.statusLabel.setText("Extract " + str(i) + "/" + str(nameList) + " - " + str(member.filename))   
+                QApplication.processEvents()
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())        
+        
+    def optionExit(self,msgbox=True):
+        quit_msg = "Extraction in progress - Exit anyway ?"
+        reply = QMessageBox.question(self.center(), 'Exit', quit_msg, QMessageBox.Yes, QMessageBox.No)        
+        if reply == QMessageBox.Yes:
+            confirmed = True
+        else:
+            confirmed = False
+
+        if confirmed:
+            app = QApplication.instance()
+            #app.closeAllWindows()
+            self.tray.hide()
+            os._exit(1)
+
+
 class MainWindow(QMainWindow):
 
     restartOdooMenuItem = QtCore.pyqtSignal()
@@ -137,9 +481,49 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.startCybeSystemsApplication()
+
+        if OdooInstallationFound == False:
+            
+            if not os.path.isdir(scriptpath + '\\Temp'):
+                os.makedirs(scriptpath + '\\Temp')    
+                        
+            unzipToPath = scriptpath + '\\Temp\\Unzip'
+            destinationPath = scriptpath + "\\Runtime\\Odoo"
+                    
+            self.downloadFileWorker(mainSettings['github']['downloadPath'])
+            
+            if os.path.isfile(scriptpath + '\\Temp\\GitHub-Odoo.zip'):
+                if not os.path.isdir(scriptpath + '\\Temp\\unzip'):
+                    os.makedirs(scriptpath + '\\Temp\\unzip')               
+                                
+                self.zipFileWorker(scriptpath + '\\Temp\\GitHub-Odoo.zip', unzipToPath)
+                self.zipWindow.close()
+                
+                #Check if the file is etxracted to subfolder - Files on github includes branch name -> Correct this
+                countFolders = 0
+                extractFolder = None
+                for name  in os.listdir(unzipToPath):
+                    extractFolder = name
+                    countFolders += 1
+                if countFolders == 1:
+                    shutil.move(unzipToPath + "\\" + extractFolder + "\\", destinationPath)
+                self.startCybeSystemsApplication()
+        else:
+            self.startCybeSystemsApplication()
+            
+        if os.path.isdir(scriptpath + '\\Temp'):
+            shutil.rmtree(scriptpath + '\\Temp',ignore_errors=True)
+        
+    def zipFileWorker(self,file, destination_folder):
+        self.zipWindow = ZipWindow(file, destination_folder)
+        self.zipWindow.show()          
+        
+    def downloadFileWorker(self,url):
+        self.httpWin = HttpWindow(url)
+        self.httpWin.exec()        
 
     def startCybeSystemsApplication(self):
+        
         #Set Loading TrayIcon
         self.setWindowIcon(QtGui.QIcon(scriptpath + '/ressource/icons/icon.png'))
 
@@ -301,7 +685,6 @@ class MainWindow(QMainWindow):
             app.closeAllWindows()
             self.tray.hide()
             os._exit(1)
-
 
 class CommandLineWindow(QMainWindow):
     def __init__(self, parent=None):
