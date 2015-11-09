@@ -37,7 +37,9 @@
         "ProductVersion": "1.0.0.0",
         "SpecialBuild": ""
     },
-    "packagesArray": [],
+    "packagesArray": [
+        "psutil"
+    ],
     "packagesHookArray": [
         "PyQt5"
     ],
