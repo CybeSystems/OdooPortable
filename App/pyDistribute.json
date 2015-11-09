@@ -1,0 +1,65 @@
+{
+    "buildConfig": {
+        "appIcon": "\\AppInfo\\appicon.ico",
+        "copyStartFile": true,
+        "createNuitkaLauncher": false,
+        "dllPath": "\\DLLs\\",
+        "libPath": "\\Lib\\site-packages\\",
+        "pyFileMinfifier": 0,
+        "pythonCustomInterpreter": true,
+        "pythonExeName": "Odoo.exe",
+        "pythonReleasePath": "\\Python",
+        "pythonWExeName": "OdooW.exe",
+        "startFile": "OdooLauncher.py",
+        "upxIgnore": [
+            "qwindows.dll",
+            "qoffscreen.dll",
+            "qminimal.dll"
+        ],
+        "useCustomSite.py": true,
+        "useUpx": true,
+        "zipPythonStdLib": true
+    },
+    "nsisConfig": {
+        "Comments": "",
+        "CompanyName": "CybeSystems.com",
+        "CreateConsoleAndWindowVersion": true,
+        "FileDescription": "OdooPortable",
+        "FileVersion": "1.0.0.0",
+        "InternalName": "CybeSystems",
+        "LegalCopyright": "(c) CybeSystems.com",
+        "LegalTrademarks": "CybeSystems",
+        "OriginalFilename": "CybeSystems.exe",
+        "OutConsoleFileName": "OdooPortable-Console.exe",
+        "OutFileName": "OdooPortable.exe",
+        "PrivateBuild": "",
+        "ProductName": "OdooPortable",
+        "ProductVersion": "1.0.0.0",
+        "SpecialBuild": ""
+    },
+    "packagesArray": [],
+    "packagesHookArray": [
+        "PyQt5"
+    ],
+    "packagesPyQt5Array": [
+        "icudt53.dll",
+        "icuin53.dll",
+        "icuuc53.dll",
+        "libeay32.dll",
+        "ssleay32.dll",
+        "qt5core.dll",
+        "qt5gui.dll",
+        "qt5widgets.dll",
+        "Qt.pyd",
+        "QtCore.pyd",
+        "QtGui.pyd",
+        "QtWidgets.pyd",
+        "QtWidgets.pyd",
+        "QtWidgets.pyd"
+    ],
+    "release": {
+        "create7zipRelease": true,
+        "createPortableApp": true,
+        "usePortableAppsStructure": true
+    }
+}

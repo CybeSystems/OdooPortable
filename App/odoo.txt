@@ -1,0 +1,9 @@
+PostgreSQL
+Database: odoo
+User: odoo
+Pass: odoo
+
+Odoo:
+Masterpassword: admin
+Database: odoo
+Pass: odoo

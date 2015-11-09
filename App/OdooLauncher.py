@@ -7,26 +7,14 @@
 import os, sys
 
 scriptpath = os.path.realpath(os.path.dirname(sys.argv[0])).replace('\\','/')
+appfolder = os.path.dirname(scriptpath)
 scriptpathWinSep = os.path.realpath(os.path.dirname(sys.argv[0]))
-
-sys.path.insert(0, scriptpath)
-sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.join(scriptpath, 'lib'))
-
-if sys.maxsize == 2147483647:
-    sys.path.insert(0, os.path.join(scriptpath, 'libX86'))
-    sys.path.insert(0, scriptpath + '/libX86/libraries.zip')
-    print ("Running x86")
-else:
-    sys.path.insert(0, os.path.join(scriptpath, 'libX64'))
-    sys.path.insert(0, scriptpath + '/libX64/libraries.zip')
-    print ("Running x64")
-
-import re, time, webbrowser
+appfolderWinSep = os.path.realpath(appfolder)
 
 #########################################################################################################
 # Import Libs
 #########################################################################################################
+import re, time, webbrowser
 import dict4ini
 import urllib.request
 import psutil
@@ -37,18 +25,10 @@ from PyQt5 import QtCore, QtGui, uic, QtWidgets, QtNetwork
 from PyQt5.QtWidgets import QApplication, QMessageBox, QDialog, QVBoxLayout, QTextEdit, QMainWindow, QSystemTrayIcon, QMenu, QAction, QDesktopWidget, QProgressBar
 QtCore.QString = str
 
-
-os.environ['QT_API'] = 'pyqt'
-if hasattr(sys, 'frozen'):
-    if sys.maxsize == 2147483647:
-        QtCore.QCoreApplication.setLibraryPaths(['libX86/plugins'])
-    else:
-        QtCore.QCoreApplication.setLibraryPaths(['libX64/plugins'])
-
 #########################################################################################################
 # Read Config
 #########################################################################################################
-scriptpathParentFolder = os.path.dirname(scriptpathWinSep)
+scriptpathParentFolder = os.path.dirname(appfolderWinSep)
 print(scriptpathParentFolder)
 datapath = scriptpathParentFolder + "\\Data"
 
@@ -56,7 +36,7 @@ if not os.path.isdir(scriptpathParentFolder + '\\Data'):
     os.makedirs(scriptpathParentFolder + '\\Data')
 
 if not os.path.isfile(datapath + '\\config.ini'):
-    QtCore.QFile.copy(scriptpathWinSep + '\\DefaultData\\config.ini', datapath + '\\config.ini')
+    QtCore.QFile.copy(appfolderWinSep + '\\DefaultData\\config.ini', datapath + '\\config.ini')
 
 mainSettings ={}
 mainConfigFile = datapath + '\\config.ini'
@@ -68,8 +48,8 @@ runtimeSettings = {}
 
 def defaultMainSettingsIni():
     mainSettings['github'] = {}
-    mainSettings['github']['downloadPath'] = "https://codeload.github.com/odoo/odoo/zip/9.0"    
-    
+    mainSettings['github']['downloadPath'] = "https://codeload.github.com/odoo/odoo/zip/9.0"
+
     mainSettings['other'] = {}
     mainSettings['other']['theme'] = "Default"
     mainSettings['other']['minimizeToTray'] = True
@@ -85,7 +65,7 @@ def defaultMainSettingsIni():
     mainSettings['odoo']['postgrePost'] = "5432"
     mainSettings['odoo']['postgreUser'] = "odoo"
     mainSettings['odoo']['postgrePassword'] = "odoo"
-    mainSettings['odoo']['postgrePath'] = scriptpath + "/Runtime/PostgreSQL/bin"
+    mainSettings['odoo']['postgrePath'] = appfolder + "/Runtime/PostgreSQL/bin"
 
     runtimeSettings["closeMainWindow"] = False
 
@@ -106,13 +86,13 @@ replaceSetting()
 
 def writeMainSettings():
     mainSettings.save()
-    
+
 
 OdooInstallationFound = True
-if not os.path.isdir(scriptpath + '\\Runtime\\Odoo'):
+if not os.path.isdir(appfolder + '\\Runtime\\Odoo'):
     OdooInstallationFound = False
-    print("Odoo  not found -> Downloading on GUI start")    
-    
+    print("Odoo  not found -> Downloading on GUI start")
+
 
 
 
@@ -145,7 +125,7 @@ class HttpWindow(QtWidgets.QDialog):
         self.urlLineEdit = QtWidgets.QLineEdit(url)
         if showURL == True:
 
-            
+
             urlLabel = QtWidgets.QLabel("&URL:")
             urlLabel.setBuddy(self.urlLineEdit)
             self.statusLabel = QtWidgets.QLabel("Please enter the URL of a file you want to download.")
@@ -169,7 +149,7 @@ class HttpWindow(QtWidgets.QDialog):
 
             topLayout = QtWidgets.QHBoxLayout()
 
-            
+
             topLayout.addWidget(urlLabel)
             topLayout.addWidget(self.urlLineEdit)
 
@@ -184,7 +164,7 @@ class HttpWindow(QtWidgets.QDialog):
         else:
             self.progressbar = QtWidgets.QProgressBar()
             self.progressbar.setMinimum(1)
-            self.progressbar.setMaximum(100)            
+            self.progressbar.setMaximum(100)
 
             self.urlLabel = QtWidgets.QLabel("&URL:")
             self.urlLabel.setBuddy(self.urlLineEdit)
@@ -208,7 +188,7 @@ class HttpWindow(QtWidgets.QDialog):
             self.quitButton.clicked.connect(self.close)
 
             topLayout = QtWidgets.QHBoxLayout()
-            
+
             topLayout.addWidget(self.urlLabel)
             topLayout.addWidget(self.urlLineEdit)
 
@@ -241,9 +221,9 @@ class HttpWindow(QtWidgets.QDialog):
 
         if not fileName:
             fileName = 'index.html'
-        
+
         #Use a fixed name for Odoo download from github
-        fileName = "Temp\\GitHub-Odoo.zip"
+        fileName = appfolder + "\\Temp\\GitHub-Odoo.zip"
 
         if QtCore.QFile.exists(fileName):
             ret = QtWidgets.QMessageBox.question(self, "HTTP","There already exists a file called %s in the current directory. Overwrite?" % fileName, QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
@@ -355,7 +335,7 @@ class HttpWindow(QtWidgets.QDialog):
 
         if ret == QtWidgets.QMessageBox.Ignore:
             self.reply.ignoreSslErrors()
-    
+
 
 #########################################################################################################
 # Check if program is already running
@@ -365,13 +345,9 @@ count = 0
 procs = list(psutil.process_iter())
 for proc in procs:
     try:
-        if proc.name() == 'OdooLauncher-X86.exe':
+        if proc.name() == 'Odoo.exe':
             count = count + 1
-        elif proc.name() == 'OdooLauncher-Console-X86.exe':
-            count = count + 1
-        elif proc.name() == 'OdooLauncher-X64.exe':
-            count = count + 1
-        elif proc.name() == 'OdooLauncher-Console-X64.exe':
+        elif proc.name() == 'OdooW.exe':
             count = count + 1
     except:
         pass
@@ -386,11 +362,11 @@ def loadUi(uifile, parent=None):
 
 #####################################################################################################
 # Extract Dialog
-#####################################################################################################    
+#####################################################################################################
 class ZipWindow(QtWidgets.QDialog):
 
     trigger = QtCore.pyqtSignal()
-    
+
     def center_widget(self, w):
         desktop = QtWidgets.QApplication.desktop()
         screenRect = desktop.screenGeometry(desktop.primaryScreen())
@@ -413,7 +389,7 @@ class ZipWindow(QtWidgets.QDialog):
 
         self.downloadButton = QtWidgets.QPushButton("Download")
         self.downloadButton.setDefault(True)
-        
+
         self.quitButton = QtWidgets.QPushButton("Quit")
         self.quitButton.setAutoDefault(False)
 
@@ -431,14 +407,14 @@ class ZipWindow(QtWidgets.QDialog):
         mainLayout.addWidget(self.statusLabel)
         mainLayout.addWidget(buttonBox)
         self.setLayout(mainLayout)
-        
+
         self.setWindowTitle("Extracting...")
-        
+
         self.show()
         self.downloadButton.hide()
         self.downloadButton.click()
-        
-        
+
+
     def downloadFile(self):
         odooZipFile = zipfile.ZipFile(self.file)
         nameList = len(odooZipFile.namelist())
@@ -448,18 +424,18 @@ class ZipWindow(QtWidgets.QDialog):
             members = myzipfile.infolist()
             for i, member in enumerate(members):
                 myzipfile.extract(member, self.destination_path)
-                self.statusLabel.setText("Extract " + str(i) + "/" + str(nameList) + " - " + str(member.filename))   
+                self.statusLabel.setText("Extract " + str(i) + "/" + str(nameList) + " - " + str(member.filename))
                 QApplication.processEvents()
 
     def center(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
-        self.move(qr.topLeft())        
-        
+        self.move(qr.topLeft())
+
     def optionExit(self,msgbox=True):
         quit_msg = "Extraction in progress - Exit anyway ?"
-        reply = QMessageBox.question(self.center(), 'Exit', quit_msg, QMessageBox.Yes, QMessageBox.No)        
+        reply = QMessageBox.question(self.center(), 'Exit', quit_msg, QMessageBox.Yes, QMessageBox.No)
         if reply == QMessageBox.Yes:
             confirmed = True
         else:
@@ -483,22 +459,22 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         if OdooInstallationFound == False:
-            
-            if not os.path.isdir(scriptpath + '\\Temp'):
-                os.makedirs(scriptpath + '\\Temp')    
-                        
-            unzipToPath = scriptpath + '\\Temp\\Unzip'
-            destinationPath = scriptpath + "\\Runtime\\Odoo"
-                    
+
+            if not os.path.isdir(appfolder + '\\Temp'):
+                os.makedirs(appfolder + '\\Temp')
+
+            unzipToPath = appfolder + '\\Temp\\Unzip'
+            destinationPath = appfolder + "\\Runtime\\Odoo"
+
             self.downloadFileWorker(mainSettings['github']['downloadPath'])
-            
-            if os.path.isfile(scriptpath + '\\Temp\\GitHub-Odoo.zip'):
-                if not os.path.isdir(scriptpath + '\\Temp\\unzip'):
-                    os.makedirs(scriptpath + '\\Temp\\unzip')               
-                                
-                self.zipFileWorker(scriptpath + '\\Temp\\GitHub-Odoo.zip', unzipToPath)
+
+            if os.path.isfile(appfolder + '\\Temp\\GitHub-Odoo.zip'):
+                if not os.path.isdir(appfolder + '\\Temp\\unzip'):
+                    os.makedirs(appfolder + '\\Temp\\unzip')
+
+                self.zipFileWorker(appfolder + '\\Temp\\GitHub-Odoo.zip', unzipToPath)
                 self.zipWindow.close()
-                
+
                 #Check if the file is etxracted to subfolder - Files on github includes branch name -> Correct this
                 countFolders = 0
                 extractFolder = None
@@ -510,25 +486,25 @@ class MainWindow(QMainWindow):
                 self.startCybeSystemsApplication()
         else:
             self.startCybeSystemsApplication()
-            
-        if os.path.isdir(scriptpath + '\\Temp'):
-            shutil.rmtree(scriptpath + '\\Temp',ignore_errors=True)
-        
+
+        if os.path.isdir(appfolder + '\\Temp'):
+            shutil.rmtree(appfolder + '\\Temp',ignore_errors=True)
+
     def zipFileWorker(self,file, destination_folder):
         self.zipWindow = ZipWindow(file, destination_folder)
-        self.zipWindow.show()          
-        
+        self.zipWindow.show()
+
     def downloadFileWorker(self,url):
         self.httpWin = HttpWindow(url)
-        self.httpWin.exec()        
+        self.httpWin.exec()
 
     def startCybeSystemsApplication(self):
-        
+
         #Set Loading TrayIcon
-        self.setWindowIcon(QtGui.QIcon(scriptpath + '/ressource/icons/icon.png'))
+        self.setWindowIcon(QtGui.QIcon(appfolder + '/ressource/icons/icon.png'))
 
         img = QtGui.QImage()
-        img.load(scriptpath + '/ressource/icons/icon_loading.png')
+        img.load(appfolder + '/ressource/icons/icon_loading.png')
         self.pixmap = QtGui.QPixmap.fromImage(img)
         self.icon = QtGui.QIcon()
         self.icon.addPixmap(self.pixmap)
@@ -539,7 +515,7 @@ class MainWindow(QMainWindow):
         #Set Real Icon
         self.tray.hide()
         img = QtGui.QImage()
-        img.load(scriptpath + '/ressource/icons/icon.png')
+        img.load(appfolder + '/ressource/icons/icon.png')
         self.pixmap = QtGui.QPixmap.fromImage(img)
         self.icon = QtGui.QIcon()
         self.icon.addPixmap(self.pixmap)
@@ -551,11 +527,11 @@ class MainWindow(QMainWindow):
         #Load Stylesheet
         if mainSettings['other']['theme'].lower() != 'default':
             if mainSettings['other']['theme'].lower() == 'steamlike':
-                stylesheetFile = open(scriptpath + '/ressource/ui/steamlike.stylesheet', "r")
+                stylesheetFile = open(appfolder + '/ressource/ui/steamlike.stylesheet', "r")
             elif mainSettings['other']['theme'].lower() == 'darkorange':
-                stylesheetFile = open(scriptpath + '/ressource/ui/darkorange.stylesheet', "r")
+                stylesheetFile = open(appfolder + '/ressource/ui/darkorange.stylesheet', "r")
             elif mainSettings['other']['theme'].lower() == 'maya':
-                stylesheetFile = open(scriptpath + '/ressource/ui/maya.stylesheet', "r")
+                stylesheetFile = open(appfolder + '/ressource/ui/maya.stylesheet', "r")
             stylesheet = stylesheetFile.read()
             traymenu.setStyleSheet(stylesheet)
             stylesheetFile.close()
@@ -563,69 +539,69 @@ class MainWindow(QMainWindow):
         trayoption_openBrowser_entry = QAction(QtGui.QIcon(self.icon), "Open Odoo", self)
         trayoption_openBrowser_entry.triggered.connect(lambda: webbrowser.open(mainSettings['odoo']['startpage']))
         traymenu.addAction(trayoption_openBrowser_entry)
-        trayoption_openBrowser_entry.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/world.png'))
+        trayoption_openBrowser_entry.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/world.png'))
 
         traymenu.addSeparator()
 
         tools = traymenu.addMenu('&Odoo')
-        tools.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/icon.png'))
+        tools.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/icon.png'))
 
         tools_odoo_restart = QAction(QtGui.QIcon(self.icon), "Restart Server", self)
         tools_odoo_restart.triggered.connect(lambda: (self.restartOdooMenuItem.emit()))
         tools.addAction(tools_odoo_restart)
-        tools_odoo_restart.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/start_server.png'))
+        tools_odoo_restart.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/start_server.png'))
 
         tools_odoo_stop = QAction(QtGui.QIcon(self.icon), "Stop Server", self)
         tools_odoo_stop.triggered.connect(lambda: (self.stopOdooMenuItem.emit()))
         tools.addAction(tools_odoo_stop)
-        tools_odoo_stop.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/stop_server.png'))
+        tools_odoo_stop.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/stop_server.png'))
 
         #traymenu.addSeparator()
 
         tools = traymenu.addMenu('&PostgreSQL')
-        tools.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/postgresql.png'))
+        tools.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/postgresql.png'))
 
         tools_postgre_restart = QAction(QtGui.QIcon(self.icon), "Restart Server", self)
         tools_postgre_restart.triggered.connect(lambda: (self.restartPostgreMenuItem.emit()))
         tools.addAction(tools_postgre_restart)
-        tools_postgre_restart.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/start_server.png'))
+        tools_postgre_restart.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/start_server.png'))
 
         tools_postgre_stop = QAction(QtGui.QIcon(self.icon), "Stop Server", self)
         tools_postgre_stop.triggered.connect(lambda: (self.stopPostgreMenuItem.emit()))
         tools.addAction(tools_postgre_stop)
-        tools_postgre_stop.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/stop_server.png'))
+        tools_postgre_stop.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/stop_server.png'))
 
         tools.addSeparator()
 
         tools_pgadmin = QAction(QtGui.QIcon(self.icon), "pgAdmin III", self)
         tools_pgadmin.triggered.connect(lambda: self.startpgadmin())
         tools.addAction(tools_pgadmin)
-        tools_pgadmin.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/cog.png'))
+        tools_pgadmin.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/cog.png'))
 
         traymenu.addSeparator()
 
         trayoption_quickconfig = QAction(QtGui.QIcon(self.icon), "Show Output/Config", self)
         trayoption_quickconfig.triggered.connect(lambda: self.showCommandLineWindowTryOption())
         traymenu.addAction(trayoption_quickconfig)
-        trayoption_quickconfig.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/application_osx_terminal.png'))
+        trayoption_quickconfig.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/application_osx_terminal.png'))
 
         traymenu.addSeparator()
 
         trayoption_exit_entry = QAction(QtGui.QIcon(self.icon), "Exit", self)
         trayoption_exit_entry.triggered.connect(lambda: self.trayOptionExit())
         traymenu.addAction(trayoption_exit_entry)
-        trayoption_exit_entry.setIcon(QtGui.QIcon(scriptpath + '/ressource/icons/cancel.png'))
+        trayoption_exit_entry.setIcon(QtGui.QIcon(appfolder + '/ressource/icons/cancel.png'))
 
         self.tray.showMessage('Odoo is Loading - Please wait','\nLeft click to open CommandWindow\nRight click to open Traymenu')
 
         self.showCommandLineWindow()
 
     def startpgadmin(self):
-        os.startfile(scriptpath + '/Runtime/PostgreSQL/bin/pgAdmin3.exe')
+        os.startfile(appfolder + '/Runtime/PostgreSQL/bin/pgAdmin3.exe')
 
     def showCommandLineWindow(self):
         self.ShowCommandLineWindow=CommandLineWindow(self)
-        self.ShowCommandLineWindow.setWindowIcon(QtGui.QIcon(scriptpath + '/ressource/icons/icon.png'))
+        self.ShowCommandLineWindow.setWindowIcon(QtGui.QIcon(appfolder + '/ressource/icons/icon.png'))
         self.ShowCommandLineWindow.show()
         if mainSettings['other']['minimizeToTray']:
             self.ShowCommandLineWindow.setVisible(False)
@@ -695,15 +671,15 @@ class CommandLineWindow(QMainWindow):
         parent.restartPostgreMenuItem.connect(self.restartPostgre, QtCore.Qt.QueuedConnection)
         parent.stopPostgreMenuItem.connect(self.stopPostgre, QtCore.Qt.QueuedConnection)
 
-        loadUi(scriptpath + "/ressource/ui/CommandLineDialog.ui", self)
+        loadUi(appfolder + "/ressource/ui/CommandLineDialog.ui", self)
 
         if mainSettings['other']['theme'].lower() != 'default':
             if mainSettings['other']['theme'].lower() == 'steamlike':
-                stylesheetFile = open(scriptpath + '/ressource/ui/steamlike.stylesheet', "r")
+                stylesheetFile = open(appfolder + '/ressource/ui/steamlike.stylesheet', "r")
             elif mainSettings['other']['theme'].lower() == 'darkorange':
-                stylesheetFile = open(scriptpath + '/ressource/ui/darkorange.stylesheet', "r")
+                stylesheetFile = open(appfolder + '/ressource/ui/darkorange.stylesheet', "r")
             elif mainSettings['other']['theme'].lower() == 'maya':
-                stylesheetFile = open(scriptpath + '/ressource/ui/maya.stylesheet', "r")
+                stylesheetFile = open(appfolder + '/ressource/ui/maya.stylesheet', "r")
             stylesheet = stylesheetFile.read()
             self.setStyleSheet(stylesheet)
             stylesheetFile.close()
@@ -738,22 +714,22 @@ class CommandLineWindow(QMainWindow):
         if mainSettings['autostart']['autostartPostgre']:
             self.checkBox_config_autostart_postgre.setCheckState(QtCore.Qt.Checked)
 
-        self.button_odoo_restart.setIcon(QtGui.QIcon(scriptpath + "/ressource/icons/start_server.png"))
-        self.button_odoo_stop.setIcon(QtGui.QIcon(scriptpath + "/ressource/icons/stop_server.png"))
-        self.button_postgre_restart.setIcon(QtGui.QIcon(scriptpath + "/ressource/icons/start_server.png"))
-        self.button_postgre_stop.setIcon(QtGui.QIcon(scriptpath + "/ressource/icons/stop_server.png"))
-        self.pushButton_config_save.setIcon(QtGui.QIcon(scriptpath + "/ressource/icons/disk.png"))
-        self.button_odoo_browser.setIcon(QtGui.QIcon(scriptpath + "/ressource/icons/world.png"))
+        self.button_odoo_restart.setIcon(QtGui.QIcon(appfolder + "/ressource/icons/start_server.png"))
+        self.button_odoo_stop.setIcon(QtGui.QIcon(appfolder + "/ressource/icons/stop_server.png"))
+        self.button_postgre_restart.setIcon(QtGui.QIcon(appfolder + "/ressource/icons/start_server.png"))
+        self.button_postgre_stop.setIcon(QtGui.QIcon(appfolder + "/ressource/icons/stop_server.png"))
+        self.pushButton_config_save.setIcon(QtGui.QIcon(appfolder + "/ressource/icons/disk.png"))
+        self.button_odoo_browser.setIcon(QtGui.QIcon(appfolder + "/ressource/icons/world.png"))
 
-        self.tabWidget.setTabIcon(0, QtGui.QIcon(scriptpath + "/ressource/icons/icon.png"))
-        self.tabWidget.setTabIcon(1, QtGui.QIcon(scriptpath + "/ressource/icons/postgresql.png"))
-        self.tabWidget.setTabIcon(2, QtGui.QIcon(scriptpath + "/ressource/icons/cog.png"))
-        self.tabWidget.setTabIcon(3, QtGui.QIcon(scriptpath + "/ressource/icons/lightbulb.png"))
+        self.tabWidget.setTabIcon(0, QtGui.QIcon(appfolder + "/ressource/icons/icon.png"))
+        self.tabWidget.setTabIcon(1, QtGui.QIcon(appfolder + "/ressource/icons/postgresql.png"))
+        self.tabWidget.setTabIcon(2, QtGui.QIcon(appfolder + "/ressource/icons/cog.png"))
+        self.tabWidget.setTabIcon(3, QtGui.QIcon(appfolder + "/ressource/icons/lightbulb.png"))
         self.tabWidget.setIconSize(QtCore.QSize(12, 12))
 
         self.label_cybesystems_about.setAlignment(QtCore.Qt.AlignTop)
 
-        self.label_cybesystems_logo.setPixmap(QtGui.QPixmap(scriptpath + "/ressource/icons/cybetech_background.png"))
+        self.label_cybesystems_logo.setPixmap(QtGui.QPixmap(appfolder + "/ressource/icons/cybetech_background.png"))
         self.label_cybesystems_logo.setAlignment(QtCore.Qt.AlignRight)
 
     def checkCheckboxState(self, checkbox):
@@ -812,21 +788,21 @@ class CommandLineWindow(QMainWindow):
     def processStartOdoo(self):
         #arguments = QtCore.QMetaType.QStringList()
         argumentsOdoo = []
-        shellOdoo = scriptpathWinSep + "\\Runtime\\Python27\\python.exe"
-        argumentsOdoo.append(scriptpathWinSep + "\\Runtime\\Odoo\\odoo.py")
+        shellOdoo = appfolderWinSep + "\\Runtime\\Python27\\python.exe"
+        argumentsOdoo.append(appfolderWinSep + "\\Runtime\\Odoo\\odoo.py")
         #argumentsOdoo.append('--admin=admin')
         argumentsOdoo.append('--db_host=' + mainSettings['odoo']['postgreHost'])
         argumentsOdoo.append('--db_port=' + str(mainSettings['odoo']['postgrePost']))
         argumentsOdoo.append('--db_user=' + mainSettings['odoo']['postgreUser'])
         argumentsOdoo.append('--db_password=' + mainSettings['odoo']['postgrePassword'])
-        argumentsOdoo.append('--pg_path=' + scriptpathWinSep + mainSettings['odoo']['postgrePath'])
+        argumentsOdoo.append('--pg_path=' + appfolderWinSep + mainSettings['odoo']['postgrePath'])
 
         #To Start diffent Python Verison (in tis case 2.7) PYTHON_PATH needs to set to this installation
-        os.environ["PYTHONPATH"] = scriptpathWinSep + "\\Runtime\\Python27"
-        os.environ["PATH"] = scriptpathWinSep + "\\Runtime\\wkhtmltopdf\\bin" + ";" + scriptpathWinSep + "\\Runtime\\nodejs"
+        os.environ["PYTHONPATH"] = appfolderWinSep + "\\Runtime\\Python27"
+        os.environ["PATH"] = appfolderWinSep + "\\Runtime\\wkhtmltopdf\\bin" + ";" + appfolderWinSep + "\\Runtime\\nodejs"
 
         self.processOdoo = QtCore.QProcess( self)
-        self.processOdoo.setWorkingDirectory(scriptpathWinSep + "\\Runtime\\Python27")
+        self.processOdoo.setWorkingDirectory(appfolderWinSep + "\\Runtime\\Python27")
         self.processOdoo.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.processOdoo.finished.connect(self.processFinishedShellOdoo)
         self.processOdoo.readyRead.connect(self.processOutputShellOdoo)
@@ -886,19 +862,19 @@ class CommandLineWindow(QMainWindow):
     #############################
     # Init PostgreSQL
     ##############################
-    os.environ["PGSQL"] = scriptpathWinSep + "\\Apps\\PostgreSQL\\App\\PgSQL"
+    os.environ["PGSQL"] = appfolderWinSep + "\\Apps\\PostgreSQL\\App\\PgSQL"
     os.environ["PGDATA"] =datapath + '\\PostgreSQL\\Data'
     os.environ["PGLOG"] = datapath + '\\PostgreSQL\\log.txt'
-    os.environ["PGLOCALEDIR"] = scriptpathWinSep + "\\Runtime\\PostgreSQL\\share"
+    os.environ["PGLOCALEDIR"] = appfolderWinSep + "\\Runtime\\PostgreSQL\\share"
     os.environ["PGDATABASE"] = "postgres"
     os.environ["PGUSER"] = "postgres"
 
 
     def firstRunPostgre(self):
         #Arguments dont works corrent with QProcess
-        os.environ["PATH"] = scriptpathWinSep + "\\Runtime\\PostgreSQL\\bin"
+        os.environ["PATH"] = appfolderWinSep + "\\Runtime\\PostgreSQL\\bin"
 
-        shellPgInit = scriptpathWinSep + '\\Runtime\\PostgreSQL\\bin\\initdb.exe'
+        shellPgInit = appfolderWinSep + '\\Runtime\\PostgreSQL\\bin\\initdb.exe'
         shellPgInit += ' -U ' + "postgres"
         shellPgInit += ' -A trust'
         shellPgInit += ' -E utf8'
@@ -940,9 +916,9 @@ class CommandLineWindow(QMainWindow):
     ##############################
 
     def runPostgreCommand(self):
-        os.environ["PATH"] = scriptpathWinSep + "\\Runtime\\PostgreSQL\\bin"
+        os.environ["PATH"] = appfolderWinSep + "\\Runtime\\PostgreSQL\\bin"
 
-        shellPgCommand = scriptpathWinSep + '\\Runtime\\PostgreSQL\\bin\\psql.exe'
+        shellPgCommand = appfolderWinSep + '\\Runtime\\PostgreSQL\\bin\\psql.exe'
         shellPgCommand += ' --username=' + "postgres"
         shellPgCommand += ' -c "CREATE USER odoo WITH PASSWORD \'odoo\' SUPERUSER;"'
 
@@ -984,8 +960,8 @@ class CommandLineWindow(QMainWindow):
             self.firstRunPostgre()
         else:
             #Arguments dont works corrent with QProcess
-            os.environ["PATH"] = scriptpathWinSep + "\\Runtime\\PostgreSQL\\bin"
-            shellPgStart = scriptpathWinSep + '\\Runtime\\PostgreSQL\\bin\\pg_ctl.exe'
+            os.environ["PATH"] = appfolderWinSep + "\\Runtime\\PostgreSQL\\bin"
+            shellPgStart = appfolderWinSep + '\\Runtime\\PostgreSQL\\bin\\pg_ctl.exe'
             shellPgStart += ' -D ' + datapath + '\\PostgreSQL\\Data'
             shellPgStart += ' -l ' + datapath + '\\PostgreSQL\\log.txt'
             shellPgStart += ' -w start'
@@ -1019,7 +995,7 @@ class CommandLineWindow(QMainWindow):
     ##############################
 
     def processStopPostgre(self):
-        shellPgStop = scriptpathWinSep + '\\Runtime\\PostgreSQL\\bin\\pg_ctl.exe'
+        shellPgStop = appfolderWinSep + '\\Runtime\\PostgreSQL\\bin\\pg_ctl.exe'
         shellPgStop += ' -D ' + datapath + '\\PostgreSQL\\data'
         shellPgStop += ' stop'
         #Force stopping
